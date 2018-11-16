@@ -1,0 +1,142 @@
+
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("com.bmuschko:gradle-docker-plugin:${gradleDockerVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+
+group = 'com.mikeschlosser16'
+version = '0.0.1-SNAPSHOT'
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://plugins.gradle.org/m2/'
+    }
+    maven {
+        url 'https://packages.confluent.io/maven/'
+    }
+}
+
+dependencies {
+    // Spring
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    // Kafka + Apache
+    compile "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
+    compile "org.apache.kafka:kafka-streams:${kafkaVersion}"
+    compile "org.apache.kafka:kafka-clients:${kafkaVersion}"
+    compile "org.apache.httpcomponents:httpclient:${apacheHttpVersion}"
+    // Logging
+    compile "log4j:log4j:1.2.17"
+    compile "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    compile "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    compile "kafkamanager:kafka-manager-models:${kafkaManagerModelVersion}"
+
+    // Miscellaneous
+    compile "org.codehaus.groovy:groovy-all:${groovyVersion}"
+
+    // Test
+    compile "org.spockframework:spock-core:${spockVersion}"
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+    dependencies {
+        //    logging
+        //dependency "log4j:log4j:1.2.17"
+        dependency("org.springframework.boot:spring-boot-starter:${springBootVersion}") {
+            exclude 'org.springframework.boot:spring-boot-starter-logging'
+        }
+        dependency "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        dependency "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        dependency "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    }
+}
+
+configurations {
+    all*.exclude group: 'log4j', module: 'log4j'
+}
+
+
+//task createDockerImage(type: DockerBuildImage) {
+//    inputDir = file('.')
+//    tags = ['topic-manager/topic-manager-api']
+//}
+//
+//task createDockerContainer(type: DockerCreateContainer) {
+//    dependsOn createDockerImage
+//    targetImageId { createDockerImage.getImageId() }
+//    portBindings = ['8080:8080']
+//    exposePorts("tcp", [8080])
+//    containerName = "kafkamanager"
+//    network = "kafka-manager-platform_default"
+//
+//}
+//
+//task startContainer(type: DockerStartContainer) {
+//    dependsOn createDockerContainer
+//    targetContainerId { createDockerContainer.getContainerId() }
+//}
+//
+//task stopContainer(type: DockerStopContainer) {
+//    targetContainerId { "kafkamanager" }
+////    onError { exception ->
+////        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
+////            println 'No container to stop'
+////        }
+////    }
+//}
+//
+//task removeContainer(type: DockerRemoveContainer) {
+//    dependsOn stopContainer
+//    targetContainerId { "kafkamanager" }
+////    onError { exception ->
+////        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
+////            println 'No container to remove'
+////        }
+////    }
+//}
+//
+//task deleteFiles(type: Delete) {
+//    delete fileTree('build/libs') {
+//        include '*.jar'
+//    }
+//}
+//
+//task startApi() {
+//    dependsOn build
+//    dependsOn startContainer
+//}
+//
+//task remove(type: DockerRemoveContainer) {
+//    dependsOn deleteFiles
+//    targetContainerId { "kafkamanager" }
+////    onError { exception ->
+////        if (exception instanceof com.github.dockerjava.api.exception.ConflictException) {
+////            println 'Container needs to be stopped'
+////        }
+////    }
+//}
+//
+//remove.finalizedBy(stopContainer)
+//remove.finalizedBy(removeContainer)
