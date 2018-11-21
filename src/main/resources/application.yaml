@@ -1,0 +1,13 @@
+---
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+kafkamanager:
+  topics:
+    apiInputTopic: __api_input_topic.v1
+logging:
+  level:
+    root: INFO
