@@ -1,4 +1,4 @@
-package consumer
+package admin.consumer
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.springframework.beans.factory.annotation.Autowired

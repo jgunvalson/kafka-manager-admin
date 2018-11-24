@@ -1,4 +1,4 @@
-package consumer.listener
+package admin.consumer.listener
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,7 +14,7 @@ class DeleteTopicListener {
     private static final Logger log = LoggerFactory.getLogger(DeleteTopicListener.class)
 
     @KafkaListener(
-            topics = "${kafkamanager.topics.apiInputTopic}",
+            topics = "__api_input_topic.v1",
             containerFactory = "deleteTopicKafkaListenerContainerFactory"
     )
     void consume(@Payload String m,

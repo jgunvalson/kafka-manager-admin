@@ -1,7 +1,8 @@
-package consumer.listener
+package admin.consumer.listener
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.handler.annotation.Header
@@ -14,7 +15,7 @@ class CreateTopicListener {
     private static final Logger log = LoggerFactory.getLogger(CreateTopicListener.class)
 
     @KafkaListener(
-            topics = "${kafkamanager.topics.apiInputTopic}",
+            topics = "__api_input_topic.v1",
             containerFactory = "createTopicKafkaListenerContainerFactory"
     )
     void consume(@Payload String m,
