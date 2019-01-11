@@ -6,22 +6,22 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.stereotype.Service
 
-@Service
 class DeleteTopicListener {
 
-    private static final Logger log = LoggerFactory.getLogger(DeleteTopicListener.class)
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(DeleteTopicListener::class.java)
+    }
 
     @KafkaListener(
-            topics = "__api_input_topic.v1",
-            containerFactory = "deleteTopicKafkaListenerContainerFactory"
-    )
-    void consume(@Payload String m,
-                 @Header MessageHeaders h) {
+            topics = arrayOf<String>("__api_input_topic.v1"),
+            containerFactory = "DeleteTopicKafkaListenerContainerFactory")
+
+    fun consume(@Payload m: String,
+                @Header h: MessageHeaders): Unit {
 
         log.info("Admin service has received a delete-topic message, {}.", m)
-        h.entrySet().each {
+        h.forEach{
             log.info("Headers, {}.", it.key)
         }
     }
