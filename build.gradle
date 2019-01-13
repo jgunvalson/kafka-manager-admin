@@ -1,3 +1,8 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
 
 buildscript {
     repositories {
@@ -9,12 +14,14 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("com.bmuschko:gradle-docker-plugin:${gradleDockerVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'groovy'
+
+apply plugin: 'kotlin'
 apply plugin: 'eclipse'
+apply plugin: 'application'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'com.bmuschko.docker-remote-api'
@@ -22,6 +29,7 @@ apply plugin: 'com.bmuschko.docker-remote-api'
 
 group = 'com.mikeschlosser16'
 version = '0.0.1-SNAPSHOT'
+mainClassName = 'admin.KafkaManagerAdminApplication'
 
 
 repositories {
@@ -58,6 +66,8 @@ dependencies {
     // Test
     compile "org.spockframework:spock-core:${spockVersion}"
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    compile "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 dependencyManagement {
@@ -78,65 +88,65 @@ configurations {
 }
 
 
-//task createDockerImage(type: DockerBuildImage) {
-//    inputDir = file('.')
-//    tags = ['topic-manager/topic-manager-api']
-//}
-//
-//task createDockerContainer(type: DockerCreateContainer) {
-//    dependsOn createDockerImage
-//    targetImageId { createDockerImage.getImageId() }
-//    portBindings = ['8080:8080']
-//    exposePorts("tcp", [8080])
-//    containerName = "kafkamanager"
-//    network = "kafka-manager-platform_default"
-//
-//}
-//
-//task startContainer(type: DockerStartContainer) {
-//    dependsOn createDockerContainer
-//    targetContainerId { createDockerContainer.getContainerId() }
-//}
-//
-//task stopContainer(type: DockerStopContainer) {
-//    targetContainerId { "kafkamanager" }
-////    onError { exception ->
-////        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
-////            println 'No container to stop'
-////        }
-////    }
-//}
-//
-//task removeContainer(type: DockerRemoveContainer) {
-//    dependsOn stopContainer
-//    targetContainerId { "kafkamanager" }
-////    onError { exception ->
-////        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
-////            println 'No container to remove'
-////        }
-////    }
-//}
-//
-//task deleteFiles(type: Delete) {
-//    delete fileTree('build/libs') {
-//        include '*.jar'
+task createDockerImage(type: DockerBuildImage) {
+    inputDir = file('.')
+    tags = ['topic-manager/topicmanager-admin']
+}
+
+task createDockerContainer(type: DockerCreateContainer) {
+    dependsOn createDockerImage
+    targetImageId { createDockerImage.getImageId() }
+    portBindings = ['8080:8080']
+    exposePorts("tcp", [8080])
+    containerName = "kafkamanager-admin"
+    network = "kafka-manager-platform_default"
+
+}
+
+task startContainer(type: DockerStartContainer) {
+    dependsOn createDockerContainer
+    targetContainerId { createDockerContainer.getContainerId() }
+}
+
+task stopContainer(type: DockerStopContainer) {
+    targetContainerId { "kafkamanager-admin" }
+//    onError { exception ->
+//        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
+//            println 'No container to stop'
+//        }
 //    }
-//}
-//
-//task startApi() {
-//    dependsOn build
-//    dependsOn startContainer
-//}
-//
-//task remove(type: DockerRemoveContainer) {
-//    dependsOn deleteFiles
-//    targetContainerId { "kafkamanager" }
-////    onError { exception ->
-////        if (exception instanceof com.github.dockerjava.api.exception.ConflictException) {
-////            println 'Container needs to be stopped'
-////        }
-////    }
-//}
-//
-//remove.finalizedBy(stopContainer)
-//remove.finalizedBy(removeContainer)
+}
+
+task removeContainer(type: DockerRemoveContainer) {
+    dependsOn stopContainer
+    targetContainerId { "kafkamanager-admin" }
+//    onError { exception ->
+//        if (exception instanceof com.github.dockerjava.api.exception.NotFoundException) {
+//            println 'No container to remove'
+//        }
+//    }
+}
+
+task deleteFiles(type: Delete) {
+    delete fileTree('build/libs') {
+        include '*.jar'
+    }
+}
+
+task startApi() {
+    dependsOn build
+    dependsOn startContainer
+}
+
+task remove(type: DockerRemoveContainer) {
+    dependsOn deleteFiles
+    targetContainerId { "kafkamanager-admin" }
+//    onError { exception ->
+//        if (exception instanceof com.github.dockerjava.api.exception.ConflictException) {
+//            println 'Container needs to be stopped'
+//        }
+//    }
+}
+
+remove.finalizedBy(stopContainer)
+remove.finalizedBy(removeContainer)

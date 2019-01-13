@@ -1,0 +1,14 @@
+---
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      client-id: KafkaManagerAdmin
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+kafkamanager:
+  topics:
+    apiInputTopic: __api_input_topic.v1
+logging:
+  level:
+    root: INFO
