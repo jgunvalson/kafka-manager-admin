@@ -9,6 +9,10 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ConfigurableApplicationContext
 import javax.annotation.PostConstruct
 
+
+/*
+    The purpose of this class is to generate the appropriate client beans for managing clusters. Still WIP.
+ */
 @ConfigurationProperties(prefix = "clusters")
 class ConfigurableClusterContext{
 
