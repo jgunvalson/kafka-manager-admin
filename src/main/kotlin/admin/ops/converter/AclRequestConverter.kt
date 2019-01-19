@@ -1,6 +1,6 @@
 package admin.ops.converter
 
-import kafkamanager.model.AclRequest
+import kafkamanager.model.NewAcl
 import org.apache.kafka.common.acl.AccessControlEntry
 import org.apache.kafka.common.acl.AclBinding
 import org.apache.kafka.common.acl.AclOperation
@@ -12,6 +12,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
+
 @Component
 class AclRequestConverter {
 
@@ -19,10 +20,10 @@ class AclRequestConverter {
         private val log: Logger = LoggerFactory.getLogger(AclRequestConverter::class.java)
     }
 
-    fun convertAclRequest(aclRequest: AclRequest): AclBinding {
+    fun convertAclRequest(newAcl: NewAcl): AclBinding {
 
 
-        val resourceType = when (aclRequest.getResourceType().toLowerCase()) {
+        val resourceType = when (newAcl.getResourceType().toLowerCase()) {
             "topic" ->  ResourceType.TOPIC
             "group" ->  ResourceType.GROUP
             "cluster" ->  ResourceType.CLUSTER
@@ -32,7 +33,7 @@ class AclRequestConverter {
         }
 
 
-        val patternType = when (aclRequest.getPatternType().toLowerCase()) {
+        val patternType = when (newAcl.getPatternType().toLowerCase()) {
             "literal" -> PatternType.LITERAL
             "prefixed" -> PatternType.PREFIXED
             "match" -> PatternType.MATCH
@@ -42,7 +43,7 @@ class AclRequestConverter {
         }
 
 
-        val aclOperation = when (aclRequest.getOperation().toLowerCase()) {
+        val aclOperation = when (newAcl.getOperation().toLowerCase()) {
             "read" -> AclOperation.READ
             "write" -> AclOperation.WRITE
             "describe" -> AclOperation.DESCRIBE
@@ -56,7 +57,7 @@ class AclRequestConverter {
             }
         }
 
-        val aclPermissionType = when (aclRequest.getPermissionType().toLowerCase()) {
+        val aclPermissionType = when (newAcl.getPermissionType().toLowerCase()) {
             "allow" -> AclPermissionType.ALLOW
             "deny" -> AclPermissionType.DENY
             "any" -> AclPermissionType.ANY
@@ -67,11 +68,11 @@ class AclRequestConverter {
 
 
         val resourcePattern = ResourcePattern(resourceType,
-                aclRequest.getPrincipal(),
+                newAcl.getPrincipal(),
                 patternType)
 
-        val accessControlEntry = AccessControlEntry(aclRequest.getPrincipal(),
-                aclRequest.getHost(),
+        val accessControlEntry = AccessControlEntry(newAcl.getPrincipal(),
+                newAcl.getHost(),
                 aclOperation,
                 aclPermissionType)
 
