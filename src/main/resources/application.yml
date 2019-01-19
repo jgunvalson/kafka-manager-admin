@@ -12,3 +12,11 @@ kafkamanager:
 logging:
   level:
     root: INFO
+
+clusters:
+  adminClientClusters:
+    -
+      environmentName: dev
+      configOverrides:
+        "bootstrap.servers": "localhost:9092"
+        "client.id": "kafka-topic-admin"
