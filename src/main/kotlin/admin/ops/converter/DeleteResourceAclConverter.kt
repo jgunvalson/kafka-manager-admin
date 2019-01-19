@@ -1,12 +1,12 @@
 package admin.ops.converter
 
-import kafkamanager.model.NewAcl
-import org.apache.kafka.common.acl.AccessControlEntry
-import org.apache.kafka.common.acl.AclBinding
+import kafkamanager.model.DeleteAcl
+import org.apache.kafka.common.acl.AccessControlEntryFilter
+import org.apache.kafka.common.acl.AclBindingFilter
 import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.acl.AclPermissionType
 import org.apache.kafka.common.resource.PatternType
-import org.apache.kafka.common.resource.ResourcePattern
+import org.apache.kafka.common.resource.ResourcePatternFilter
 import org.apache.kafka.common.resource.ResourceType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,26 +14,27 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class AclRequestConverter {
+class DeleteResourceAclConverter {
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(AclRequestConverter::class.java)
+        private val log: Logger = LoggerFactory.getLogger(DeleteResourceAclConverter::class.java)
     }
 
-    fun convertAclRequest(newAcl: NewAcl): AclBinding {
+
+    fun convertDeleteResourceAcl(deleteAcl: DeleteAcl): AclBindingFilter {
 
 
-        val resourceType = when (newAcl.getResourceType().toLowerCase()) {
+        val resourceType = when (deleteAcl.getResourceType().toLowerCase()) {
             "topic" ->  ResourceType.TOPIC
             "group" ->  ResourceType.GROUP
             "cluster" ->  ResourceType.CLUSTER
             else -> {
-                 ResourceType.UNKNOWN
+                ResourceType.UNKNOWN
             }
         }
 
 
-        val patternType = when (newAcl.getPatternType().toLowerCase()) {
+        val patternType = when (deleteAcl.getPatternType().toLowerCase()) {
             "literal" -> PatternType.LITERAL
             "prefixed" -> PatternType.PREFIXED
             "match" -> PatternType.MATCH
@@ -43,7 +44,7 @@ class AclRequestConverter {
         }
 
 
-        val aclOperation = when (newAcl.getOperation().toLowerCase()) {
+        val aclOperation = when (deleteAcl.getOperation().toLowerCase()) {
             "read" -> AclOperation.READ
             "write" -> AclOperation.WRITE
             "describe" -> AclOperation.DESCRIBE
@@ -57,7 +58,7 @@ class AclRequestConverter {
             }
         }
 
-        val aclPermissionType = when (newAcl.getPermissionType().toLowerCase()) {
+        val aclPermissionType = when (deleteAcl.getPermissionType().toLowerCase()) {
             "allow" -> AclPermissionType.ALLOW
             "deny" -> AclPermissionType.DENY
             "any" -> AclPermissionType.ANY
@@ -67,17 +68,9 @@ class AclRequestConverter {
         }
 
 
-        val resourcePattern = ResourcePattern(resourceType,
-                newAcl.getResource(),
-                patternType)
-
-        val accessControlEntry = AccessControlEntry(newAcl.getPrincipal(),
-                newAcl.getHost(),
-                aclOperation,
-                aclPermissionType)
-
-
-        return AclBinding(resourcePattern, accessControlEntry)
+        return AclBindingFilter(
+                ResourcePatternFilter(resourceType, deleteAcl.getResource(), patternType),
+                AccessControlEntryFilter(deleteAcl.getPrincipal(), deleteAcl.getHost(), aclOperation, aclPermissionType)
+        )
     }
-
 }

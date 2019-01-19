@@ -2,6 +2,7 @@ package admin.ops
 
 import admin.config.clusters.AdminClusters
 import admin.ops.converter.AclRequestConverter
+import admin.ops.converter.DeleteResourceAclConverter
 import admin.ops.converter.UpdateTopicConfigurationConverter
 import admin.ops.converter.UpdateTopicPartitionsConverter
 import kafkamanager.model.*
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Component
 class KafkaManagerAdminClient constructor(@Autowired private val adminClusters: AdminClusters,
                                           @Autowired private val aclRequestConverter: AclRequestConverter,
                                           @Autowired private val updateTopicConfigurationConverter: UpdateTopicConfigurationConverter,
-                                          @Autowired private val updateTopicPartitionsConverter: UpdateTopicPartitionsConverter) {
+                                          @Autowired private val updateTopicPartitionsConverter: UpdateTopicPartitionsConverter,
+                                          @Autowired private val deleteResourceAclConverter: DeleteResourceAclConverter) {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(KafkaManagerAdminClient::class.java)
@@ -37,7 +39,7 @@ class KafkaManagerAdminClient constructor(@Autowired private val adminClusters: 
         }
 
 
-        adminClient?.createTopics(newTopics) ?: log.error("Failed to create new acls on request {}, {}.",
+        adminClient?.createTopics(newTopics) ?: log.error("Failed to create new acls on request {}:{} because admin-client value was invalid or null.",
                 newTopicRequest.getEnvironment(),
                 newTopicRequest.getNewTopics().size)
     }
@@ -53,7 +55,7 @@ class KafkaManagerAdminClient constructor(@Autowired private val adminClusters: 
         }
 
 
-        adminClient?.createAcls(newAcls) ?: log.error("Failed to create new acls on request {}, {}.",
+        adminClient?.createAcls(newAcls) ?: log.error("Failed to create new acls on request {}:{} because admin-client value was invalid or null.",
                 newAclRequest.getEnvironment(),
                 newAclRequest.getNewAcls().size)
     }
@@ -73,7 +75,7 @@ class KafkaManagerAdminClient constructor(@Autowired private val adminClusters: 
         }
 
 
-        adminClient?.alterConfigs(newConfigurations) ?: log.error("Failed to create new configurations on request {}, {}.",
+        adminClient?.alterConfigs(newConfigurations) ?: log.error("Failed to create new configurations on request {}:{} because admin-client value was invalid or null.",
                 updateTopicConfigurationRequest.getEnvironment(),
                 updateTopicConfigurationRequest.getNewConfigurations().size)
     }
@@ -88,8 +90,37 @@ class KafkaManagerAdminClient constructor(@Autowired private val adminClusters: 
         }.toMap()
 
 
-        adminClient?.createPartitions(newPartitions) ?: log.error("Failed to create new partitions on request {}, {}.",
+        adminClient?.createPartitions(newPartitions) ?: log.error("Failed to create new partitions on request {}:{} because admin-client value was invalid or null.",
                 updateTopicPartitionsRequest.getEnvironment(),
                 updateTopicPartitionsRequest.getNewPartitions().size)
+    }
+
+    fun deleteTopicsFromRequest(deleteTopicRequest: DeleteTopicRequest) {
+
+        val adminClient = adminClusters.adminClients.getOrDefault(deleteTopicRequest.getEnvironment(), null)
+
+/*
+        no converter needed!
+ */
+        val deleteTopics = deleteTopicRequest.getDeleteTopic().map { it.getTopicName() }
+
+
+        adminClient?.deleteTopics(deleteTopics) ?: log.error("Failed to delete topics on request {}:{} because admin-client value was invalid or null.",
+                deleteTopicRequest.getEnvironment(),
+                deleteTopicRequest.getDeleteTopic().size)
+
+    }
+
+    fun deleteAclsFromRequest(deleteResourceAclRequest: DeleteResourceAclRequest) {
+
+        val adminClient = adminClusters.adminClients.getOrDefault(deleteResourceAclRequest.getEnvironment(), null)
+
+        val deleteAclFilters = deleteResourceAclRequest.getDeleteAcls().map {
+            deleteResourceAclConverter.convertDeleteResourceAcl(it)
+        }
+
+        adminClient?.deleteAcls(deleteAclFilters) ?: log.error("Failed to delete acls on request {}:{} because admin-client value was invalid or null.",
+                deleteResourceAclRequest.getEnvironment(),
+                deleteResourceAclRequest.getDeleteAcls().size)
     }
 }
